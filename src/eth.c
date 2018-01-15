@@ -1,8 +1,28 @@
 #include "eth.h"
 
-void init_ethfrm(struct usip_ethfrm *frm) {
-    // This is only necessary because we are casting the buffer data directly to a usip_ethfrm struct
-    frm->ethertype = htons(frm->ethertype);
+int init_ethfrm(struct usip_ethfrm *frm, uint8_t *buf, int buf_len) {
+    if (buf_len <= ETH_HLEN)
+	return 1;
+
+    for (int i = 0; i < ETH_ALEN; ++i) {
+	frm->dest[i] = *(buf+i);
+	frm->source[i+ETH_ALEN] = *(buf + (i+ETH_ALEN));
+    }
+
+    uint8_t ethertype_msb = *(buf + ETH_ALEN*2);
+    uint8_t ethertype_lsb = *(buf + ETH_ALEN*2 + 1);
+    frm->ethertype = ((uint16_t)ethertype_msb << 8) + ethertype_lsb;
+
+    int data_len = buf_len-ETH_HLEN;
+    frm->data = (uint8_t *) malloc(data_len*(sizeof(uint8_t)));
+
+    if (frm->data == NULL)
+	return 1;
+
+    for (int i = 0; i < data_len; ++i)
+	frm->data[i] = buf[ETH_HLEN+i];
+
+    return 0;
 }
 
 uint32_t check_ethfrm_fcs(struct usip_ethfrm *frm, int offset) {
