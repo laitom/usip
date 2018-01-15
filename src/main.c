@@ -19,10 +19,8 @@ static void handle_frame(struct usip_ethfrm *frm) {
     case ETH_P_IPV6:
 	pkt = (struct usip_ipv6pkt *) malloc(sizeof(struct usip_ipv6pkt));
 	init_ipv6pkt(pkt, frm);
-	//pprint_ipv6pkt(pkt);
 
-	//uint32_t crc = check_ethfrm_fcs(frm, LEN_IPV6PKT(pkt));
-	//printf("crc: %08x\n", crc);
+	pprint_ipv6pkt(pkt);
 	
 	FREE_IPV6PKT(pkt);
 	break;
@@ -45,12 +43,13 @@ int main(int argc, char *argv[]) {
 
 	struct usip_ethfrm *frm = (struct usip_ethfrm *) malloc(sizeof(struct usip_ethfrm));
 
-	init_ethfrm(frm, buf, BUFLEN);
-	//print_ethfrm_hexdmp(frm, BUFLEN);
-
+	if (init_ethfrm(frm, buf, BUFLEN) != 0) {
+	    free(frm);
+	    continue;
+	}
+	
 	//handle_frame(frm);
 	pprint_ethfrm(frm);
-
 	FREE_ETHFRM(frm);
 
 	sleep(5);

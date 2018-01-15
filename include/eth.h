@@ -15,6 +15,6 @@ struct usip_ethfrm {
 };
 
 int init_ethfrm(struct usip_ethfrm *frm, char *buf, int buf_len);
-uint32_t check_ethfrm_fcs(struct usip_ethfrm *frm, int offset);
+int check_ethfrm_fcs(struct usip_ethfrm *frm);
 
 #endif // USIP_ETH_H

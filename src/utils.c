@@ -44,10 +44,11 @@ void print_ethfrm_hexdmp(struct usip_ethfrm *frm) {
     for (i = 0; i < ETH_ALEN; ++i)
 	printf("  %02x", frm->source[i]);
 
-    printf("  %02x %02x\n", ((frm->ethertype & 0xFF00) >> 8), frm->ethertype & 0x00FF);
+    printf("  %02x %02x", ((frm->ethertype & 0xFF00) >> 8), frm->ethertype & 0x00FF);
 
-    for (i = 0; i < frm->payload_len; ++i) {
-	if (i % 14 == 0) printf("\n");
+    for (i = 0; i < frm->payload_len; ++i)
 	printf("  %02x", frm->payload[i]);
-    }
+
+    for (i = 0; i < 4; ++i)
+	printf("  %02x", frm->fcs[i]);
 }
