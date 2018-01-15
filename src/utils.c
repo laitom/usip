@@ -18,4 +18,36 @@ void pprint_ethfrm(struct usip_ethfrm *frm) {
     PPRINT_MAC("Destination", frm->dest);
     PPRINT_MAC("Source", frm->source);
     printf("  %-20s%02x %02x\n", "Ethertype", (frm->ethertype & 0xFF00) >> 8, (frm->ethertype & 0x00FF));
+
+    printf("  %-20s", "Payload");
+    for (int i = 0; i < frm->payload_len; ++i) {
+	if (i > 0 && i % 10 == 0) printf("\n  %20s", "");
+	printf("%02x  ", frm->payload[i]);
+    }
+
+    printf("\n");
+    printf("  %-20s", "FCS");
+    for (int i = 0; i < 4; ++i)
+	printf("%02x  ", frm->fcs[i]);
+
+    printf("\n");
+}
+
+void print_ethfrm_hexdmp(struct usip_ethfrm *frm) {
+    int i;
+    
+    PPRINT_HEADR("Ethernet frame hexdump");
+    
+    for (i = 0; i < ETH_ALEN; ++i)
+	printf("  %02x", frm->dest[i]);
+
+    for (i = 0; i < ETH_ALEN; ++i)
+	printf("  %02x", frm->source[i]);
+
+    printf("  %02x %02x\n", ((frm->ethertype & 0xFF00) >> 8), frm->ethertype & 0x00FF);
+
+    for (i = 0; i < frm->payload_len; ++i) {
+	if (i % 14 == 0) printf("\n");
+	printf("  %02x", frm->payload[i]);
+    }
 }

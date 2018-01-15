@@ -5,6 +5,7 @@
 #include "eth.h"
 #include "ipv6.h"
 
+#define FREE_ETHFRM(frm) ({ free((frm)->payload); free((frm)); })
 #define FREE_IPV6PKT(pkt) ({ free((pkt)->payload); free((pkt)); })
 #define LEN_IPV6PKT(pkt) ((uint32_t) (40+(pkt->hdr.payload_len)))
 
@@ -26,5 +27,6 @@
 
 void pprint_ethfrm(struct usip_ethfrm *frm);
 void pprint_ipv6pkt(struct usip_ipv6pkt *pkt);
+void print_ethfrm_hexdmp(struct usip_ethfrm *frm);
 
 #endif // USIP_UTILS_H

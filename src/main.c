@@ -43,17 +43,15 @@ int main(int argc, char *argv[]) {
 	if (tap_read(buf, BUFLEN) < 0)
 	    perror("read");
 
-	printf("\n");
-
-	//struct usip_ethfrm *frm = (struct usip_ethfrm *) buf;
-	//init_ethfrm(frm);
-
 	struct usip_ethfrm *frm = (struct usip_ethfrm *) malloc(sizeof(struct usip_ethfrm));
+
 	init_ethfrm(frm, buf, BUFLEN);
-	printf("%02x %02x %02x %02x %02x %02x\n", frm->dest[0], frm->dest[1], frm->dest[2], frm->dest[3], frm->dest[4], frm->dest[5]);
-	
+	//print_ethfrm_hexdmp(frm, BUFLEN);
+
 	//handle_frame(frm);
-	//pprint_ethfrm(frm);
+	pprint_ethfrm(frm);
+
+	FREE_ETHFRM(frm);
 
 	sleep(5);
     }

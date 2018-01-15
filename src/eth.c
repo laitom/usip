@@ -1,33 +1,51 @@
 #include "eth.h"
 
-int init_ethfrm(struct usip_ethfrm *frm, uint8_t *buf, int buf_len) {
+static int payload_len_from_ipv6pkt(uint8_t *data) {
+    uint16_t payload_len = (data[4] << 8) + data[5];
+    return 40+payload_len;
+}
+
+static int payload_len_from_ethertype(uint16_t ethertype, uint8_t *data) {
+    switch(ethertype) {
+    case ETH_P_IPV6:
+	return payload_len_from_ipv6pkt(data);
+	break;
+    default:
+	return 0;
+	break;
+    }
+}
+
+int init_ethfrm(struct usip_ethfrm *frm, char *buf, int buf_len) {
+    int i;
+    uint8_t *bbuf = (uint8_t *) buf;
+    
     if (buf_len <= ETH_HLEN)
 	return 1;
 
-    for (int i = 0; i < ETH_ALEN; ++i) {
-	frm->dest[i] = *(buf+i);
-	frm->source[i+ETH_ALEN] = *(buf + (i+ETH_ALEN));
+    for (i = 0; i < ETH_ALEN; ++i) {
+	frm->dest[i] = *(bbuf+i);
+	frm->source[i+ETH_ALEN] = *(bbuf + (i+ETH_ALEN));
     }
 
-    uint8_t ethertype_msb = *(buf + ETH_ALEN*2);
-    uint8_t ethertype_lsb = *(buf + ETH_ALEN*2 + 1);
+    uint8_t ethertype_msb = *(bbuf + ETH_ALEN*2);
+    uint8_t ethertype_lsb = *(bbuf + ETH_ALEN*2 + 1);
     frm->ethertype = ((uint16_t)ethertype_msb << 8) + ethertype_lsb;
 
-    int data_len = buf_len-ETH_HLEN;
-    frm->data = (uint8_t *) malloc(data_len*(sizeof(uint8_t)));
+    frm->payload_len = payload_len_from_ethertype(frm->ethertype, bbuf);
 
-    if (frm->data == NULL)
-	return 1;
+    // This shouldn't cause issues, since according to http://pubs.opengroup.org/onlinepubs/009695399/functions/malloc.html,
+    // malloc(0) returns a pointer that can be safely passed to free()
+    frm->payload = (uint8_t *) malloc(frm->payload_len * sizeof(uint8_t));
+    for (i = 0; i < frm->payload_len; ++i)
+	frm->payload[i] = bbuf[ETH_HLEN+i];
 
-    for (int i = 0; i < data_len; ++i)
-	frm->data[i] = buf[ETH_HLEN+i];
+    for (i = 0; i < 4; ++i)
+	frm->fcs[i] = bbuf[ETH_HLEN + frm->payload_len + i];
 
     return 0;
 }
 
 uint32_t check_ethfrm_fcs(struct usip_ethfrm *frm, int offset) {
-    return ((uint32_t)frm->data[offset] << 24)
-	+ ((uint32_t)frm->data[offset+1] << 16)
-	+ ((uint32_t)frm->data[offset+2] << 8)
-	+ (uint32_t)frm->data[offset+3];
+    return 0;
 }
